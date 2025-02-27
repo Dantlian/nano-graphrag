@@ -203,6 +203,12 @@ async def _merge_nodes_then_upsert(
     already_description = []
     already_date = []
 
+    date = "none"
+    for dp in nodes_data:
+        if "none" not in dp["date"].lower():
+            print("dp[entity_name]:", dp["entity_name"], "dp[date]: ", dp["date"])
+            date = dp["date"]
+
     already_node = await knwoledge_graph_inst.get_node(entity_name)
     if already_node is not None:
         already_entitiy_types.append(already_node["entity_type"])
@@ -213,13 +219,9 @@ async def _merge_nodes_then_upsert(
         if "none" not in already_node["date"].lower():
             already_date.append(already_node["date"])
 
-    date = already_date[0] if len(already_date) > 0 else "none"
-    print("already_node[entity_name]:", already_node["entity_name"], "already_node[date]: ", already_node["date"])
+        date = already_date[0] if len(already_date) > 0 else "none"
+        print("already_node[entity_name]:", already_node["entity_name"], "already_node[date]: ", already_node["date"])
 
-    for dp in nodes_data:
-        if "none" not in dp["date"].lower():
-            print("dp[entity_name]:", dp["entity_name"], "dp[date]: ", dp["date"])
-            date = dp["date"]
 
     entity_type = sorted(
         Counter(
