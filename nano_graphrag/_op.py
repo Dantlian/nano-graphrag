@@ -201,6 +201,7 @@ async def _merge_nodes_then_upsert(
     already_entitiy_types = []
     already_source_ids = []
     already_description = []
+    already_date = []
 
     already_node = await knwoledge_graph_inst.get_node(entity_name)
     if already_node is not None:
@@ -209,6 +210,16 @@ async def _merge_nodes_then_upsert(
             split_string_by_multi_markers(already_node["source_id"], [GRAPH_FIELD_SEP])
         )
         already_description.append(already_node["description"])
+        if "none" not in already_node["date"].lower():
+            already_date.append(already_node["date"])
+
+    date = already_date[0] if len(already_date) > 0 else "none"
+    print("already_node[entity_name]:", already_node["entity_name"], "already_node[date]: ", already_node["date"])
+
+    for dp in nodes_data:
+        if "none" not in dp["date"].lower():
+            print("dp[entity_name]:", dp["entity_name"], "dp[date]: ", dp["date"])
+            date = dp["date"]
 
     entity_type = sorted(
         Counter(
@@ -230,6 +241,7 @@ async def _merge_nodes_then_upsert(
         entity_type=entity_type,
         description=description,
         source_id=source_id,
+        date=date
     )
     await knwoledge_graph_inst.upsert_node(
         entity_name,
@@ -393,6 +405,7 @@ async def extract_entities(
     maybe_edges = defaultdict(list)
     for m_nodes, m_edges in results:
         for k, v in m_nodes.items():
+            print(f"Node Info ========= key: {k}, value: {v} ============")
             maybe_nodes[k].extend(v)
         for k, v in m_edges.items():
             # it's undirected graph
