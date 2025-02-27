@@ -191,6 +191,109 @@ Do not include information where the supporting evidence for it is not provided.
 Output:
 """
 
+# PROMPTS[
+#     "entity_extraction"
+# ] = """-Goal-
+# Given a text document that is potentially relevant to this activity and a list of entity types, identify all entities of those types from the text and all relationships among the identified entities.
+
+# -Steps-
+# 1. Identify all entities. For each identified entity, extract the following information:
+# - entity_name: Name of the entity, capitalized
+# - entity_type: One of the following types: [{entity_types}]
+# - entity_description: Comprehensive description of the entity's attributes and activities
+# Format each entity as ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>
+
+# 2. From the entities identified in step 1, identify all pairs of (source_entity, target_entity) that are *clearly related* to each other.
+# For each pair of related entities, extract the following information:
+# - source_entity: name of the source entity, as identified in step 1
+# - target_entity: name of the target entity, as identified in step 1
+# - relationship_description: explanation as to why you think the source entity and the target entity are related to each other
+# - relationship_strength: a numeric score indicating strength of the relationship between the source entity and target entity
+#  Format each relationship as ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
+
+# 3. Return output in English as a single list of all the entities and relationships identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+
+# 4. When finished, output {completion_delimiter}
+
+# ######################
+# -Examples-
+# ######################
+# Example 1:
+
+# Entity_types: [person, technology, mission, organization, location]
+# Text:
+# while Alex clenched his jaw, the buzz of frustration dull against the backdrop of Taylor's authoritarian certainty. It was this competitive undercurrent that kept him alert, the sense that his and Jordan's shared commitment to discovery was an unspoken rebellion against Cruz's narrowing vision of control and order.
+
+# Then Taylor did something unexpected. They paused beside Jordan and, for a moment, observed the device with something akin to reverence. “If this tech can be understood..." Taylor said, their voice quieter, "It could change the game for us. For all of us.”
+
+# The underlying dismissal earlier seemed to falter, replaced by a glimpse of reluctant respect for the gravity of what lay in their hands. Jordan looked up, and for a fleeting heartbeat, their eyes locked with Taylor's, a wordless clash of wills softening into an uneasy truce.
+
+# It was a small transformation, barely perceptible, but one that Alex noted with an inward nod. They had all been brought here by different paths
+# ################
+# Output:
+# ("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex is a character who experiences frustration and is observant of the dynamics among other characters."){record_delimiter}
+# ("entity"{tuple_delimiter}"Taylor"{tuple_delimiter}"person"{tuple_delimiter}"Taylor is portrayed with authoritarian certainty and shows a moment of reverence towards a device, indicating a change in perspective."){record_delimiter}
+# ("entity"{tuple_delimiter}"Jordan"{tuple_delimiter}"person"{tuple_delimiter}"Jordan shares a commitment to discovery and has a significant interaction with Taylor regarding a device."){record_delimiter}
+# ("entity"{tuple_delimiter}"Cruz"{tuple_delimiter}"person"{tuple_delimiter}"Cruz is associated with a vision of control and order, influencing the dynamics among other characters."){record_delimiter}
+# ("entity"{tuple_delimiter}"The Device"{tuple_delimiter}"technology"{tuple_delimiter}"The Device is central to the story, with potential game-changing implications, and is revered by Taylor."){record_delimiter}
+# ("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Taylor"{tuple_delimiter}"Alex is affected by Taylor's authoritarian certainty and observes changes in Taylor's attitude towards the device."{tuple_delimiter}7){record_delimiter}
+# ("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Jordan"{tuple_delimiter}"Alex and Jordan share a commitment to discovery, which contrasts with Cruz's vision."{tuple_delimiter}6){record_delimiter}
+# ("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"Jordan"{tuple_delimiter}"Taylor and Jordan interact directly regarding the device, leading to a moment of mutual respect and an uneasy truce."{tuple_delimiter}8){record_delimiter}
+# ("relationship"{tuple_delimiter}"Jordan"{tuple_delimiter}"Cruz"{tuple_delimiter}"Jordan's commitment to discovery is in rebellion against Cruz's vision of control and order."{tuple_delimiter}5){record_delimiter}
+# ("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"The Device"{tuple_delimiter}"Taylor shows reverence towards the device, indicating its importance and potential impact."{tuple_delimiter}9){completion_delimiter}
+# #############################
+# Example 2:
+
+# Entity_types: [person, technology, mission, organization, location]
+# Text:
+# They were no longer mere operatives; they had become guardians of a threshold, keepers of a message from a realm beyond stars and stripes. This elevation in their mission could not be shackled by regulations and established protocols—it demanded a new perspective, a new resolve.
+
+# Tension threaded through the dialogue of beeps and static as communications with Washington buzzed in the background. The team stood, a portentous air enveloping them. It was clear that the decisions they made in the ensuing hours could redefine humanity's place in the cosmos or condemn them to ignorance and potential peril.
+
+# Their connection to the stars solidified, the group moved to address the crystallizing warning, shifting from passive recipients to active participants. Mercer's latter instincts gained precedence— the team's mandate had evolved, no longer solely to observe and report but to interact and prepare. A metamorphosis had begun, and Operation: Dulce hummed with the newfound frequency of their daring, a tone set not by the earthly
+# #############
+# Output:
+# ("entity"{tuple_delimiter}"Washington"{tuple_delimiter}"location"{tuple_delimiter}"Washington is a location where communications are being received, indicating its importance in the decision-making process."){record_delimiter}
+# ("entity"{tuple_delimiter}"Operation: Dulce"{tuple_delimiter}"mission"{tuple_delimiter}"Operation: Dulce is described as a mission that has evolved to interact and prepare, indicating a significant shift in objectives and activities."){record_delimiter}
+# ("entity"{tuple_delimiter}"The team"{tuple_delimiter}"organization"{tuple_delimiter}"The team is portrayed as a group of individuals who have transitioned from passive observers to active participants in a mission, showing a dynamic change in their role."){record_delimiter}
+# ("relationship"{tuple_delimiter}"The team"{tuple_delimiter}"Washington"{tuple_delimiter}"The team receives communications from Washington, which influences their decision-making process."{tuple_delimiter}7){record_delimiter}
+# ("relationship"{tuple_delimiter}"The team"{tuple_delimiter}"Operation: Dulce"{tuple_delimiter}"The team is directly involved in Operation: Dulce, executing its evolved objectives and activities."{tuple_delimiter}9){completion_delimiter}
+# #############################
+# Example 3:
+
+# Entity_types: [person, role, technology, organization, event, location, concept]
+# Text:
+# their voice slicing through the buzz of activity. "Control may be an illusion when facing an intelligence that literally writes its own rules," they stated stoically, casting a watchful eye over the flurry of data.
+
+# "It's like it's learning to communicate," offered Sam Rivera from a nearby interface, their youthful energy boding a mix of awe and anxiety. "This gives talking to strangers' a whole new meaning."
+
+# Alex surveyed his team—each face a study in concentration, determination, and not a small measure of trepidation. "This might well be our first contact," he acknowledged, "And we need to be ready for whatever answers back."
+
+# Together, they stood on the edge of the unknown, forging humanity's response to a message from the heavens. The ensuing silence was palpable—a collective introspection about their role in this grand cosmic play, one that could rewrite human history.
+
+# The encrypted dialogue continued to unfold, its intricate patterns showing an almost uncanny anticipation
+# #############
+# Output:
+# ("entity"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"person"{tuple_delimiter}"Sam Rivera is a member of a team working on communicating with an unknown intelligence, showing a mix of awe and anxiety."){record_delimiter}
+# ("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex is the leader of a team attempting first contact with an unknown intelligence, acknowledging the significance of their task."){record_delimiter}
+# ("entity"{tuple_delimiter}"Control"{tuple_delimiter}"concept"{tuple_delimiter}"Control refers to the ability to manage or govern, which is challenged by an intelligence that writes its own rules."){record_delimiter}
+# ("entity"{tuple_delimiter}"Intelligence"{tuple_delimiter}"concept"{tuple_delimiter}"Intelligence here refers to an unknown entity capable of writing its own rules and learning to communicate."){record_delimiter}
+# ("entity"{tuple_delimiter}"First Contact"{tuple_delimiter}"event"{tuple_delimiter}"First Contact is the potential initial communication between humanity and an unknown intelligence."){record_delimiter}
+# ("entity"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"event"{tuple_delimiter}"Humanity's Response is the collective action taken by Alex's team in response to a message from an unknown intelligence."){record_delimiter}
+# ("relationship"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"Intelligence"{tuple_delimiter}"Sam Rivera is directly involved in the process of learning to communicate with the unknown intelligence."{tuple_delimiter}9){record_delimiter}
+# ("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"First Contact"{tuple_delimiter}"Alex leads the team that might be making the First Contact with the unknown intelligence."{tuple_delimiter}10){record_delimiter}
+# ("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"Alex and his team are the key figures in Humanity's Response to the unknown intelligence."{tuple_delimiter}8){record_delimiter}
+# ("relationship"{tuple_delimiter}"Control"{tuple_delimiter}"Intelligence"{tuple_delimiter}"The concept of Control is challenged by the Intelligence that writes its own rules."{tuple_delimiter}7){completion_delimiter}
+# #############################
+# -Real Data-
+# ######################
+# Entity_types: {entity_types}
+# Text: {input_text}
+# ######################
+# Output:
+# """
+
+
 PROMPTS[
     "entity_extraction"
 ] = """-Goal-
@@ -201,7 +304,8 @@ Given a text document that is potentially relevant to this activity and a list o
 - entity_name: Name of the entity, capitalized
 - entity_type: One of the following types: [{entity_types}]
 - entity_description: Comprehensive description of the entity's attributes and activities
-Format each entity as ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>
+- entity_date: Period (start_date, end_date) when the claim was made. Both start_date and end_date should be in ISO-8601 format. If the claim was made on a single date rather than a date range, set the same date for both start_date and end_date. If date is unknown, return **NONE**.
+Format each entity as ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>{tuple_delimiter}<entity_date>
 
 2. From the entities identified in step 1, identify all pairs of (source_entity, target_entity) that are *clearly related* to each other.
 For each pair of related entities, extract the following information:
@@ -209,82 +313,66 @@ For each pair of related entities, extract the following information:
 - target_entity: name of the target entity, as identified in step 1
 - relationship_description: explanation as to why you think the source entity and the target entity are related to each other
 - relationship_strength: a numeric score indicating strength of the relationship between the source entity and target entity
+ By the way, when a time indicator (such as "after", "during") appears in the text, a TEMPORAL relationship must be created.
  Format each relationship as ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
 
-3. Return output in English as a single list of all the entities and relationships identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+3. Return output as a single list of all the entities and relationships identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
 
 4. When finished, output {completion_delimiter}
 
 ######################
 -Examples-
 ######################
+#############################
 Example 1:
 
-Entity_types: [person, technology, mission, organization, location]
+Entity_types: [person, technology, mission, organization, location, event]
 Text:
-while Alex clenched his jaw, the buzz of frustration dull against the backdrop of Taylor's authoritarian certainty. It was this competitive undercurrent that kept him alert, the sense that his and Jordan's shared commitment to discovery was an unspoken rebellion against Cruz's narrowing vision of control and order.
+During the 2023 Lunar Expedition (June 15-30, 2023), Dr. Chen developed the HELIOS reactor while working with ESA. The breakthrough came shortly after the Mars sample return mission concluded in May 2022. Project coordinator Emma Wilson noted: "This advancement directly builds on our 2020-2022 fusion experiments."
 
-Then Taylor did something unexpected. They paused beside Jordan and, for a moment, observed the device with something akin to reverence. “If this tech can be understood..." Taylor said, their voice quieter, "It could change the game for us. For all of us.”
-
-The underlying dismissal earlier seemed to falter, replaced by a glimpse of reluctant respect for the gravity of what lay in their hands. Jordan looked up, and for a fleeting heartbeat, their eyes locked with Taylor's, a wordless clash of wills softening into an uneasy truce.
-
-It was a small transformation, barely perceptible, but one that Alex noted with an inward nod. They had all been brought here by different paths
-################
 Output:
-("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex is a character who experiences frustration and is observant of the dynamics among other characters."){record_delimiter}
-("entity"{tuple_delimiter}"Taylor"{tuple_delimiter}"person"{tuple_delimiter}"Taylor is portrayed with authoritarian certainty and shows a moment of reverence towards a device, indicating a change in perspective."){record_delimiter}
-("entity"{tuple_delimiter}"Jordan"{tuple_delimiter}"person"{tuple_delimiter}"Jordan shares a commitment to discovery and has a significant interaction with Taylor regarding a device."){record_delimiter}
-("entity"{tuple_delimiter}"Cruz"{tuple_delimiter}"person"{tuple_delimiter}"Cruz is associated with a vision of control and order, influencing the dynamics among other characters."){record_delimiter}
-("entity"{tuple_delimiter}"The Device"{tuple_delimiter}"technology"{tuple_delimiter}"The Device is central to the story, with potential game-changing implications, and is revered by Taylor."){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Taylor"{tuple_delimiter}"Alex is affected by Taylor's authoritarian certainty and observes changes in Taylor's attitude towards the device."{tuple_delimiter}7){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Jordan"{tuple_delimiter}"Alex and Jordan share a commitment to discovery, which contrasts with Cruz's vision."{tuple_delimiter}6){record_delimiter}
-("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"Jordan"{tuple_delimiter}"Taylor and Jordan interact directly regarding the device, leading to a moment of mutual respect and an uneasy truce."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"Jordan"{tuple_delimiter}"Cruz"{tuple_delimiter}"Jordan's commitment to discovery is in rebellion against Cruz's vision of control and order."{tuple_delimiter}5){record_delimiter}
-("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"The Device"{tuple_delimiter}"Taylor shows reverence towards the device, indicating its importance and potential impact."{tuple_delimiter}9){completion_delimiter}
+("entity"{tuple_delimiter}"2023 Lunar Expedition"{tuple_delimiter}"event"{tuple_delimiter}"A month-long space mission occurring in June 2023"{tuple_delimiter}(2023-06-15, 2023-06-30)){record_delimiter}
+("entity"{tuple_delimiter}"Dr. Chen"{tuple_delimiter}"person"{tuple_delimiter}"Lead developer of the HELIOS reactor during lunar mission"{tuple_delimiter}**NONE**){record_delimiter}
+("entity"{tuple_delimiter}"HELIOS reactor"{tuple_delimiter}"technology"{tuple_delimiter}"Advanced fusion reactor developed during lunar expedition"{tuple_delimiter}(2023-06-15, 2023-06-30)){record_delimiter}
+("entity"{tuple_delimiter}"ESA"{tuple_delimiter}"organization"{tuple_delimiter}"European Space Agency, partner in lunar mission"{tuple_delimiter}**NONE**){record_delimiter}
+("entity"{tuple_delimiter}"Mars sample return mission"{tuple_delimiter}"mission"{tuple_delimiter}"Completed planetary science mission"{tuple_delimiter}(2022-05-01, 2022-05-31)){record_delimiter}
+("relationship"{tuple_delimiter}"2023 Lunar Expedition"{tuple_delimiter}"HELIOS reactor"{tuple_delimiter}"The reactor was developed during this mission"{tuple_delimiter}9){record_delimiter}
+("relationship"{tuple_delimiter}"Mars sample return mission"{tuple_delimiter}"2023 Lunar Expedition"{tuple_delimiter}"Lunar expedition occurred after Mars mission concluded"{tuple_delimiter}8){record_delimiter}  # TEMPORAL
+("relationship"{tuple_delimiter}"Dr. Chen"{tuple_delimiter}"ESA"{tuple_delimiter}"Collaboration during lunar mission"{tuple_delimiter}7){record_delimiter}
+("relationship"{tuple_delimiter}"HELIOS reactor"{tuple_delimiter}"2020-2022 fusion experiments"{tuple_delimiter}"Technical advancement builds on previous research"{tuple_delimiter}8){completion_delimiter}
+
 #############################
 Example 2:
 
-Entity_types: [person, technology, mission, organization, location]
+Entity_types: [person, event, organization, location]
 Text:
-They were no longer mere operatives; they had become guardians of a threshold, keepers of a message from a realm beyond stars and stripes. This elevation in their mission could not be shackled by regulations and established protocols—it demanded a new perspective, a new resolve.
+Before the Kyoto Climate Summit (2024-11-01 to 2024-11-14), Mayor Tanaka initiated Tokyo's Green Arch project in April 2024. The initiative concluded three months prior to the devastating 2025 Pacific typhoon season that lasted from June to September 2025.
 
-Tension threaded through the dialogue of beeps and static as communications with Washington buzzed in the background. The team stood, a portentous air enveloping them. It was clear that the decisions they made in the ensuing hours could redefine humanity's place in the cosmos or condemn them to ignorance and potential peril.
+Output: 
+("entity"{tuple_delimiter}"Kyoto Climate Summit"{tuple_delimiter}"event"{tuple_delimiter}"International climate conference in November 2024"{tuple_delimiter}(2024-11-01, 2024-11-14)){record_delimiter}
+("entity"{tuple_delimiter}"Mayor Tanaka"{tuple_delimiter}"person"{tuple_delimiter}"Initiated Tokyo's environmental project"{tuple_delimiter}**NONE**){record_delimiter}
+("entity"{tuple_delimiter}"Tokyo's Green Arch"{tuple_delimiter}"event"{tuple_delimiter}"Environmental initiative in Tokyo"{tuple_delimiter}(2024-04-01, 2024-07-31)){record_delimiter}
+("entity"{tuple_delimiter}"2025 Pacific typhoon season"{tuple_delimiter}"event"{tuple_delimiter}"Destructive weather event"{tuple_delimiter}(2025-06-01, 2025-09-30)){record_delimiter}
+("relationship"{tuple_delimiter}"Tokyo's Green Arch"{tuple_delimiter}"Kyoto Climate Summit"{tuple_delimiter}"Project concluded 3 months before summit"{tuple_delimiter}7){record_delimiter}  # TEMPORAL
+("relationship"{tuple_delimiter}"Mayor Tanaka"{tuple_delimiter}"Tokyo's Green Arch"{tuple_delimiter}"Initiated and led the environmental project"{tuple_delimiter}9){record_delimiter}
+("relationship"{tuple_delimiter}"Tokyo's Green Arch"{tuple_delimiter}"2025 Pacific typhoon season"{tuple_delimiter}"Project concluded before typhoon season began"{tuple_delimiter}6){record_delimiter}  # TEMPORAL{completion_delimiter}
 
-Their connection to the stars solidified, the group moved to address the crystallizing warning, shifting from passive recipients to active participants. Mercer's latter instincts gained precedence— the team's mandate had evolved, no longer solely to observe and report but to interact and prepare. A metamorphosis had begun, and Operation: Dulce hummed with the newfound frequency of their daring, a tone set not by the earthly
-#############
-Output:
-("entity"{tuple_delimiter}"Washington"{tuple_delimiter}"location"{tuple_delimiter}"Washington is a location where communications are being received, indicating its importance in the decision-making process."){record_delimiter}
-("entity"{tuple_delimiter}"Operation: Dulce"{tuple_delimiter}"mission"{tuple_delimiter}"Operation: Dulce is described as a mission that has evolved to interact and prepare, indicating a significant shift in objectives and activities."){record_delimiter}
-("entity"{tuple_delimiter}"The team"{tuple_delimiter}"organization"{tuple_delimiter}"The team is portrayed as a group of individuals who have transitioned from passive observers to active participants in a mission, showing a dynamic change in their role."){record_delimiter}
-("relationship"{tuple_delimiter}"The team"{tuple_delimiter}"Washington"{tuple_delimiter}"The team receives communications from Washington, which influences their decision-making process."{tuple_delimiter}7){record_delimiter}
-("relationship"{tuple_delimiter}"The team"{tuple_delimiter}"Operation: Dulce"{tuple_delimiter}"The team is directly involved in Operation: Dulce, executing its evolved objectives and activities."{tuple_delimiter}9){completion_delimiter}
 #############################
 Example 3:
 
-Entity_types: [person, role, technology, organization, event, location, concept]
+Entity_types: [person, technology, event, organization]
 Text:
-their voice slicing through the buzz of activity. "Control may be an illusion when facing an intelligence that literally writes its own rules," they stated stoically, casting a watchful eye over the flurry of data.
+Following the 2026 Global Cyber Summit (2026-09-01), the OpenAI team led by Dr. Amelia Chen unveiled Nexus-9 on 2027-03-15. This AI system incorporated breakthroughs from the ongoing Quantum Leap Initiative (2025-2028).
 
-"It's like it's learning to communicate," offered Sam Rivera from a nearby interface, their youthful energy boding a mix of awe and anxiety. "This gives talking to strangers' a whole new meaning."
-
-Alex surveyed his team—each face a study in concentration, determination, and not a small measure of trepidation. "This might well be our first contact," he acknowledged, "And we need to be ready for whatever answers back."
-
-Together, they stood on the edge of the unknown, forging humanity's response to a message from the heavens. The ensuing silence was palpable—a collective introspection about their role in this grand cosmic play, one that could rewrite human history.
-
-The encrypted dialogue continued to unfold, its intricate patterns showing an almost uncanny anticipation
-#############
 Output:
-("entity"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"person"{tuple_delimiter}"Sam Rivera is a member of a team working on communicating with an unknown intelligence, showing a mix of awe and anxiety."){record_delimiter}
-("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex is the leader of a team attempting first contact with an unknown intelligence, acknowledging the significance of their task."){record_delimiter}
-("entity"{tuple_delimiter}"Control"{tuple_delimiter}"concept"{tuple_delimiter}"Control refers to the ability to manage or govern, which is challenged by an intelligence that writes its own rules."){record_delimiter}
-("entity"{tuple_delimiter}"Intelligence"{tuple_delimiter}"concept"{tuple_delimiter}"Intelligence here refers to an unknown entity capable of writing its own rules and learning to communicate."){record_delimiter}
-("entity"{tuple_delimiter}"First Contact"{tuple_delimiter}"event"{tuple_delimiter}"First Contact is the potential initial communication between humanity and an unknown intelligence."){record_delimiter}
-("entity"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"event"{tuple_delimiter}"Humanity's Response is the collective action taken by Alex's team in response to a message from an unknown intelligence."){record_delimiter}
-("relationship"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"Intelligence"{tuple_delimiter}"Sam Rivera is directly involved in the process of learning to communicate with the unknown intelligence."{tuple_delimiter}9){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"First Contact"{tuple_delimiter}"Alex leads the team that might be making the First Contact with the unknown intelligence."{tuple_delimiter}10){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"Alex and his team are the key figures in Humanity's Response to the unknown intelligence."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"Control"{tuple_delimiter}"Intelligence"{tuple_delimiter}"The concept of Control is challenged by the Intelligence that writes its own rules."{tuple_delimiter}7){completion_delimiter}
-#############################
+("entity"{tuple_delimiter}"2026 Global Cyber Summit"{tuple_delimiter}"event"{tuple_delimiter}"Major technology conference in September 2026"{tuple_delimiter}(2026-09-01, 2026-09-30)){record_delimiter}
+("entity"{tuple_delimiter}"Dr. Amelia Chen"{tuple_delimiter}"person"{tuple_delimiter}"Lead researcher at OpenAI"{tuple_delimiter}**NONE**){record_delimiter}
+("entity"{tuple_delimiter}"Nexus-9"{tuple_delimiter}"technology"{tuple_delimiter}"Advanced AI system unveiled in 2027"{tuple_delimiter}(2027-03-15, 2027-03-15)){record_delimiter}
+("entity"{tuple_delimiter}"OpenAI"{tuple_delimiter}"organization"{tuple_delimiter}"AI research organization"{tuple_delimiter}**NONE**){record_delimiter}
+("entity"{tuple_delimiter}"Quantum Leap Initiative"{tuple_delimiter}"event"{tuple_delimiter}"Long-term research project running from 2025-2028"{tuple_delimiter}(2025-01-01, 2028-12-31)){record_delimiter}
+("relationship"{tuple_delimiter}"Nexus-9"{tuple_delimiter}"Quantum Leap Initiative"{tuple_delimiter}"Incorporates research from ongoing initiative"{tuple_delimiter}9){record_delimiter}
+("relationship"{tuple_delimiter}"2026 Global Cyber Summit"{tuple_delimiter}"Nexus-9"{tuple_delimiter}"AI unveiled 6 months after summit"{tuple_delimiter}6){record_delimiter}  # TEMPORAL
+("relationship"{tuple_delimiter}"Dr. Amelia Chen"{tuple_delimiter}"OpenAI"{tuple_delimiter}"Leadership position in organization"{tuple_delimiter}8){completion_delimiter}
 -Real Data-
 ######################
 Entity_types: {entity_types}
@@ -292,6 +380,7 @@ Text: {input_text}
 ######################
 Output:
 """
+
 
 
 PROMPTS[

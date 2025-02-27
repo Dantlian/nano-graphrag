@@ -158,11 +158,13 @@ async def _handle_single_entity_extraction(
         return None
     entity_type = clean_str(record_attributes[2].upper())
     entity_description = clean_str(record_attributes[3])
+    entity_date = clean_str(record_attributes[4])
     entity_source_id = chunk_key
     return dict(
         entity_name=entity_name,
         entity_type=entity_type,
         description=entity_description,
+        date=entity_date,
         source_id=entity_source_id,
     )
 
